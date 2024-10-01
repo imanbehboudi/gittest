@@ -2,20 +2,41 @@
 // Enable error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+echo "44";
 
-echo "4";
-// Database connection details
+// Database connection parameters
 $host = "database-no-2.mysql.database.azure.com";
 $username = "dbadmin2";
 $password = "834765jhfsd@#$%resad234wqeftEWR";
 $database = "sec_wordpress";
 $port = 3306;
+$cert = "bin/DigiCertGlobalRootCA.crt.pem";
 
+// Initialize MySQLi connection
 $conn = mysqli_init();
-mysqli_ssl_set($conn, NULL, NULL, "bin/DigiCertGlobalRootCA.crt.pem", NULL, NULL);
-mysqli_real_connect($conn, $host, $username, $password, $database, 3306, MYSQLI_CLIENT_SSL);
-if (mysqli_connect_errno()) {
-    die('Failed to connect to MySQL: ' . mysqli_connect_error());
+
+// Set SSL parameters (update the path with the actual location of the CA cert)
+mysqli_ssl_set($conn, NULL, NULL, $cert, NULL, NULL);
+
+// Establish a connection to the Azure MySQL database using SSL
+if (!mysqli_real_connect($conn, $host, $username, $password, $database, $port, NULL, MYSQLI_CLIENT_SSL)) {
+    die("Connection failed: " . mysqli_connect_error());
+} else {
+    echo "Connected successfully using SSL<br>";
 }
 
-echo "Connected successfully";
+// SQL query to get the list of tables
+$sql = "SHOW TABLES";
+$result = mysqli_query($conn, $sql);
+
+if ($result) {
+    echo "Tables in the database:<br>";
+    while ($row = mysqli_fetch_row($result)) {
+        echo $row[0] . "<br>";
+    }
+} else {
+    echo "Error fetching tables: " . mysqli_error($conn);
+}
+
+// Close connection
+mysqli_close($conn);
